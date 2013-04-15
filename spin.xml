@@ -12,30 +12,14 @@
  * License for the specific language governing permissions and limitations under
  * the License
 -->
-	<ModulePrefs title="Spin the wheel">
-		<Require feature="rpc" />
-		<Require feature="views" />
-		<Require feature="locked-domain" />
-	</ModulePrefs>
-	<Content type="html"><![CDATA[     
+<ModulePrefs title="Spin the wheel">
+  <Require feature="rpc" />
+  <Require feature="views" />
+  <Require feature="locked-domain" />
+</ModulePrefs>
+<Content type="html"><![CDATA[     
 
 <html>
-<style type="text/css">
-<!--
-.button {
-  border-radius: 3px;
-  -moz-border-radius: 3px;
-  background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#ddd));
-  background: -moz-linear-gradient(top, #fff, #ddd);  
-  border: 1px solid #bbb;
-}
-
-.button:active {
-	background: -webkit-gradient(linear, left top, left bottom, from(#aaa), to(#333)); 
-	background: -moz-linear-gradient(bottom, #ddd, #aaa);
-}
--->
-</style>
 <body>
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script type="text/javascript">google.load("jquery", "1.3.2");</script>
@@ -43,9 +27,8 @@
 <script type="text/javascript" src="https://hangout-for-teams.googlecode.com/git/spin.js"></script>
 
 <h3>Spin the wheel</h3>
-
 <p>
-<input class="button" type="button" value="Spin!" id="spinButton" disabled="disabled" onClick="onSpin()"/>
+<input type="button" value="Spin!" id="spinButton" onClick="onSpin()"/>
 <div id="messages"></div>
 </p>
 </body>
