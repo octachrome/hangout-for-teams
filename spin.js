@@ -13,9 +13,9 @@ gapi.hangout.data.onStateChanged.add(function(event) {
 });
 
 function onSpin() {
-  var selected = Math.floor(Math.random() * participants.length);
   var participants = gapi.hangout.getParticipants();
-  gapi.hangout.data.setValue('spinning', participants[i].id);
+  var selected = Math.floor(Math.random() * participants.length);
+  gapi.hangout.data.setValue('spinning', participants[selected].id);
 }
 
 function disableButton() {
