@@ -1,5 +1,3 @@
-console.log($('messages'));
-
 var spinning;
 gapi.hangout.data.onStateChanged.add(function(event) {
   if (spinning != event.state.spinning) {
@@ -24,6 +22,7 @@ function disableButton() {
 }
 
 function enableButton() {
+  console.log('enableButton');
   $('spinButton').removeAttr('disabled');
 }
 
@@ -35,8 +34,9 @@ function startSpinning(spinning) {
 
 function init() {
   // When API is ready...                                                         
-  gapi.hangout.onApiReady.add(function(eventObj) {
-    if (eventObj.isApiReady) {
+  gapi.hangout.onApiReady.add(function(event) {
+    console.log('onApiReady');
+    if (event.isApiReady) {
       enableButton();
     }
   });
@@ -44,3 +44,4 @@ function init() {
 
 // Wait for gadget to load.                                                       
 gadgets.util.registerOnLoadHandler(init);
+console.log('here');
