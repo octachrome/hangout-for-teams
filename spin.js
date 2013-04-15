@@ -2,7 +2,8 @@ var spinning = '';
 gapi.hangout.data.onStateChanged.add(function(event) {
   if (spinning != event.state.spinning) {
     spinning = event.state.spinning;
-    if (spinning != null) {
+    console.log('spinning = ' + spinning);
+    if (spinning != '') {
       disableButton();
       startSpinning(spinning);
     } else {
