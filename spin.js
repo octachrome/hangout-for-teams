@@ -13,9 +13,9 @@ gapi.hangout.data.onStateChanged.add(function(event) {
 });
 
 function onSpin() {
-  var participants = gapi.hangout.getParticipants();
   var selected = Math.floor(Math.random() * participants.length);
-  gapi.hangout.data.setValue('spinning', String(selected));
+  var participants = gapi.hangout.getParticipants();
+  gapi.hangout.data.setValue('spinning', participants[i].id);
 }
 
 function disableButton() {
@@ -27,9 +27,7 @@ function enableButton() {
 }
 
 function startSpinning(spinning) {
-  var participants = gapi.hangout.getParticipants();
-  var participant = participants[spinning];
-  gapi.hangout.av.setAvatar(participant.id, 'http://4.bp.blogspot.com/_t4ycBBIANiM/SszTB6CmZRI/AAAAAAAACf0/2KFiYY7FydU/s1600/HGG_koi-fishframe.png');
+  gapi.hangout.av.setAvatar(spinning, 'http://4.bp.blogspot.com/_t4ycBBIANiM/SszTB6CmZRI/AAAAAAAACf0/2KFiYY7FydU/s1600/HGG_koi-fishframe.png');
   gapi.hangout.data.setValue('spinning', '');
 }
 
