@@ -1,11 +1,9 @@
-console.log('test');
-alert('test');
-$('messages').html('test');
+console.log($('messages'));
 
 var spinning;
 gapi.hangout.data.onStateChanged.add(function(event) {
-  if (spinning != state.spinning) {
-    spinning = state.spinning;
+  if (spinning != event.state.spinning) {
+    spinning = event.state.spinning;
     if (spinning != null) {
       disableButton();
       startSpinning(spinning);
