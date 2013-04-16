@@ -1,5 +1,8 @@
 var spinning = '';
 gapi.hangout.data.onStateChanged.add(function(event) {
+  if (event.state.spinning == null) {
+    return;
+  }
   if (spinning != event.state.spinning) {
     spinning = event.state.spinning;
     console.log('spinning = ' + spinning);
