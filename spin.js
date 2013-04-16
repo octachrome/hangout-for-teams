@@ -32,11 +32,11 @@ function enableButton() {
 var active = [];
 
 function cacheActiveParticipants() {
-  active = [];
   var participants = gapi.hangout.getParticipants();
   participants.sort(function(a, b) {
     return a.displayIndex - b.displayIndex;
   });
+  active = [];
   for (var i = 0; i < participants.length; i++) {
     active.push(participants[i].id);
   }
@@ -47,9 +47,9 @@ var limit = 0;
 
 function startSpinning(spinning) {
   cacheActiveParticipants();
-  var targetIndex = participants.indexOf(spinning);
+  var targetIndex = active.indexOf(spinning);
   // TODO: adjust # cycles to give a limit of around 20
-  limit = targetIndex + participants.length * 4;
+  limit = targetIndex + active.length * 4;
   counter = 0;
   updateSpin();
 }
@@ -57,13 +57,15 @@ function startSpinning(spinning) {
 function updateSpin() {
   if (counter > 0) {
     var prev = (counter - 1) % active.length;
-    gapi.hangout.av.clearAvatar(active[prev]);
+    gapi.hangout.av.setAvatar(active[prev], 'https://upload.wikimedia.org/wikipedia/commons/5/59/Empty.png');
   }
 
   var idx = counter % active.length;
   if (counter < limit) {
+    console.log('Activating ' + active[idx]);
     gapi.hangout.av.setAvatar(active[idx], 'https://hangout-for-teams.googlecode.com/git/spinning.png');
     setTimeout(updateSpin, 100*(limit-counter+5)/(limit-counter+1));
+    counter++;
   } else {
     gapi.hangout.av.setAvatar(active[idx], 'https://hangout-for-teams.googlecode.com/git/active.png');
     gapi.hangout.data.setValue('spinning', '');
