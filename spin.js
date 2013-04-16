@@ -34,7 +34,7 @@ var active = [];
 function cacheActiveParticipants() {
   active = [];
   var participants = gapi.hangout.getParticipants();
-  participants.sort(function(a, b)) {
+  participants.sort(function(a, b) {
     return a.displayIndex - b.displayIndex;
   });
   for (var i = 0; i < participants.length; i++) {
