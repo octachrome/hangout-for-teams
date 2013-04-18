@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript">
+
+var sheight = 200;
+// height + padding + border
+var pheight = 26;
+var entries = ['Alice', 'Bob', 'Charlie', 'Dan'];
+var t = -pheight * entries.length;
+var v = 0.4;
+var a = 0.0002;
+
+var lastTime = null;
+
+function setup() {
+	var container = $('.container');
+	var reps = 1 + Math.ceil(sheight / (entries.length * pheight));
+	for (var i = 0; i < reps; i++) {
+		for (var j = 0; j < entries.length; j++) {
+			var p = $('<div class="participant">' + entries[j] + '</div>');
+			container.append(p);
+		}
+	}
+	run();
+}
+
+function run() {
+	var time = new Date().getTime();
+	if (lastTime == null) {
+		lastTime = time - 1;
+	}
+	var dt = time - lastTime;
+	lastTime = time;
+
+	$('.container').css('top', t + 'px');
+
+	var delta = v * dt;
+	if (delta > 0) {
+		t += delta;
+		while (t >= 0) {
+			t = -pheight * entries.length;
+		}
+		setTimeout(run, 10);
+	}
+
+	v -= a * dt;
+}
+
+</script>
+<style type="text/css">
+p, div {
+	font-family: Verdana, Geneva, sans-serif;
+}
+div.slot {
+	width: 150px;
+	height: 200px;
+	background-image: url(slot.png);
+	overflow: hidden;
+	position: relative;
+}
+div.container {
+	position: relative;
+}
+div.participant {
+	width: 150px;
+	height: 20px;
+	text-align: center;
+	padding: 3px;
+}
+</style>
+</head>
+<body onload="setup()">
+<div class="slot">
+	<div class="container"></div>
+</div>
+</body>
+</html>
