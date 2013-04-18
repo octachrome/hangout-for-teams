@@ -28,7 +28,7 @@
 
 <h3>Spin the wheel</h3>
 <p>
-<input type="button" value="Spin!" id="spinButton" onClick="onSpin()"/>
+<input type="button" value="Spin!" id="spinButton" onClick="onSpin()" disabled="disabled"/>
 <div id="messages"></div>
 </p>
 </body>

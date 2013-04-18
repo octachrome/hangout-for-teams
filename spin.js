@@ -1,24 +1,46 @@
-var spinning = '';
-gapi.hangout.data.onStateChanged.add(function(event) {
-  if (event.state.spinning == null) {
-    return;
-  }
-  if (spinning != event.state.spinning) {
-    spinning = event.state.spinning;
-    console.log('spinning = ' + spinning);
-    if (spinning != '') {
-      disableButton();
-      startSpinning(spinning);
-    } else {
-      enableButton();
-    }
-  }
-});
+var spinIndex;
+var spinningOverlay;
 
 function onSpin() {
+  var limit = 20;
+  var counter = 0;
+  gapi.hangout.data.submitDelta({
+    limit: String(limit),
+    counter: String(counter)
+  });
+}
+
+function onStateChanged(event) {
+  if (event.state.counter == null) {
+    return;
+  }
+  calculateSpinIndex();
+  console.log('spinIndex = ' + spinIndex);
+  var totalParticipants = gapi.hangout.getParticipants().length;
+  var counter = parseInt(event.state.counter);
+  var limit = parseInt(event.state.limit);
+  if (counter % totalParticipants == spinIndex) {
+    spinningOverlay.setVisible(true);
+    if (counter < limit) {
+      setTimeout(function() {
+        console.log('showing');
+        gapi.hangout.data.setValue('counter', String(counter + 1));
+      }, 50);
+    }
+  } else {
+   console.log('hiding');
+   spinningOverlay.setVisible(false);
+  }
+}
+
+function calculateSpinIndex() {
   var participants = gapi.hangout.getParticipants();
-  var selected = Math.floor(Math.random() * participants.length);
-  gapi.hangout.data.setValue('spinning', participants[selected].id);
+  var ids = [];
+  for (var i = 0; i < participants.length; i++) {
+    ids[ids.length] = participants[i].id;
+  }
+  ids.sort();
+  spinIndex = ids.indexOf(gapi.hangout.getLocalParticipantId());
 }
 
 function disableButton() {
@@ -27,19 +49,6 @@ function disableButton() {
 
 function enableButton() {
   $('#spinButton').removeAttr('disabled');
-}
-
-var active = [];
-
-function cacheActiveParticipants() {
-  var participants = gapi.hangout.getParticipants();
-  participants.sort(function(a, b) {
-    return a.displayIndex - b.displayIndex;
-  });
-  active = [];
-  for (var i = 0; i < participants.length; i++) {
-    active.push(participants[i].id);
-  }
 }
 
 var counter = 0;
@@ -76,7 +85,15 @@ function init() {
   // When API is ready...                                                         
   gapi.hangout.onApiReady.add(function(event) {
     if (event.isApiReady) {
-      enableButton();
+      var spinningImage = gapi.hangout.av.effects.createImageResource(
+        'https://hangout-for-teams.googlecode.com/git/spinning.png');
+      spinningImage.onLoad.add(function(event) {
+        if (event.isLoaded) {
+          spinningOverlay = spinningImage.createOverlay();
+          gapi.hangout.data.onStateChanged.add(onStateChanged);
+          enableButton();
+        }
+      });
     }
   });
 }
