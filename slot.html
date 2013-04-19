@@ -8,9 +8,13 @@ var sheight = 200;
 // height + padding + border
 var pheight = 26;
 var entries = ['Alice', 'Bob', 'Charlie', 'Dan'];
-var t = -pheight * entries.length;
+var t = 0;
 var v = 0.4;
 var a = 0.0002;
+
+var slowafter = 15;
+var max = 19;
+var minv = 1;
 
 var lastTime = null;
 
@@ -34,18 +38,23 @@ function run() {
 	var dt = time - lastTime;
 	lastTime = time;
 
-	$('.container').css('top', t + 'px');
+	var top = t % (pheight * entries.length) - pheight * entries.length;
+	$('.container').css('top', top + 'px');
+
+	var remaining = max - Math.floor(t / pheight);
 
 	var delta = v * dt;
-	if (delta > 0) {
+	if (delta < minv) {
+		delta = minv;
+	}
+	if (remaining > 0) {
 		t += delta;
-		while (t >= 0) {
-			t = -pheight * entries.length;
-		}
 		setTimeout(run, 10);
 	}
 
-	v -= a * dt;
+	if (remaining < slowafter) {
+		v -= a * dt;
+	}
 }
 
 </script>
