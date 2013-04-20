@@ -7,18 +7,23 @@
 var sheight = 200;
 // height + padding + border
 var pheight = 26;
-var entries = ['Alice', 'Bob', 'Charlie', 'Dan'];
-var t = 0;
-var v = 0.4;
-var a = 0.0002;
+var entries = ['Alice', 'Bob'];
+var a = 0.0001;
 
-var slowafter = 15;
-var max = 19;
-var minv = 1;
-
-var lastTime = null;
+var slowafter = 33;
+var max = 40;
+var minv = 0.1;
 
 function setup() {
+	var machine = $('.machine');
+	machine.mousedown(function() {
+		$(this).css('background-position-x', '-242px');
+		go();
+	});
+	machine.mouseup(function() {
+		$(this).delay(200).animate({'background-position-x': 0}, 0);
+	});
+
 	var container = $('.container');
 	var reps = 1 + Math.ceil(sheight / (entries.length * pheight));
 	for (var i = 0; i < reps; i++) {
@@ -27,6 +32,16 @@ function setup() {
 			container.append(p);
 		}
 	}
+}
+
+var t;
+var v;
+var lastTime;
+
+function go() {
+	t = 0;
+	v = 0.4;
+	lastTime = null;
 	run();
 }
 
@@ -44,9 +59,6 @@ function run() {
 	var remaining = max - Math.floor(t / pheight);
 
 	var delta = v * dt;
-	if (delta < minv) {
-		delta = minv;
-	}
 	if (remaining > 0) {
 		t += delta;
 		setTimeout(run, 10);
@@ -55,6 +67,9 @@ function run() {
 	if (remaining < slowafter) {
 		v -= a * dt;
 	}
+	if (v < minv) {
+		v = minv;
+	}
 }
 
 </script>
@@ -62,10 +77,17 @@ function run() {
 p, div {
 	font-family: Verdana, Geneva, sans-serif;
 }
+div.machine {
+	width: 242px;
+	height: 345px;
+	background-image: url(slot2.png);
+	position: relative;
+}
 div.slot {
-	width: 150px;
-	height: 200px;
-	background-image: url(slot.png);
+	top: 109px;
+	left: 27px;
+	width: 143px;
+	height: 92px;
 	overflow: hidden;
 	position: relative;
 }
@@ -73,7 +95,7 @@ div.container {
 	position: relative;
 }
 div.participant {
-	width: 150px;
+	width: 143px;
 	height: 20px;
 	text-align: center;
 	padding: 3px;
@@ -81,8 +103,10 @@ div.participant {
 </style>
 </head>
 <body onload="setup()">
+<div class="machine">
 <div class="slot">
-	<div class="container"></div>
+<div class="container"></div>
+</div>
 </div>
 </body>
 </html>
