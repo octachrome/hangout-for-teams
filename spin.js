@@ -1,3 +1,102 @@
+var participants;
+// Total number of pixels scrolled
+var t;
+// Current speed
+var v;
+// Total number of participants to scroll
+var max;
+// Time of last update
+var lastTime;
+
+// Height of spin window
+var sheight = 200;
+// Height of one entry = height + padding + border
+var pheight = 26;
+
+// Starting speed
+var startingV = 0.4;
+// Deceleration
+var a = 0.0001;
+// Deceleration will kick in when there are this many lines left to scroll
+var slowafter = 33;
+// Speed cannot fall below this value
+var minv = 0.1;
+
+function compare(a, b) {
+  if (a == b) {
+    return 0;
+  } else if (a < b) {
+    return -1;
+  } else {
+    return 1;
+  }
+}
+
+function nameIdComparator(a, b) {
+  var c = compare(a.person.displayName, b.person.displayName);
+  if (c == 0) {
+    return compare(a.id, b.id);
+  } else {
+    return c;
+  }
+}
+
+function drawParticipants() {
+  participants = gapi.hangout.getParticipants();
+  participants.sort(nameIdComparator);
+  
+  var container = $('.container');
+  container.html('');
+
+  var reps = 1 + Math.ceil(sheight / (participants.length * pheight));
+  for (var i = 0; i < reps; i++) {
+    for (var j = 0; j < participants.length; j++) {
+      var person = participants[j].person;
+      var displayName = person != null ? person.displayName : 'Unknown';
+      var p = $('<div class="participant">' + displayName + '</div>');
+      container.append(p);
+    }
+  }
+}
+
+function go(participantId) {
+  var participant = gapi.hangout.getParticipantById(participantId);
+  max = 40 + participants.indexOf(participant);
+  t = 0;
+  v = startingV;
+  lastTime = null;
+  setTimeout(run, 1);
+}
+
+function run() {
+  var time = new Date().getTime();
+  if (lastTime == null) {
+    lastTime = time - 1;
+  }
+  var dt = time - lastTime;
+  lastTime = time;
+
+  var top = t % (pheight * participants.length) - pheight * participants.length;
+  $('.container').css('top', top + 'px');
+
+  var remaining = max - Math.floor(t / pheight);
+
+  var delta = v * dt;
+  if (remaining > 0) {
+    t += delta;
+    setTimeout(run, 10);
+  } else {
+    gapi.hangout.data.setValue('spinning', '');
+  }
+
+  if (remaining < slowafter) {
+    v -= a * dt;
+  }
+  if (v < minv) {
+    v = minv;
+  }
+}
+
 var spinning = '';
 gapi.hangout.data.onStateChanged.add(function(event) {
   if (event.state.spinning == null) {
@@ -7,10 +106,10 @@ gapi.hangout.data.onStateChanged.add(function(event) {
     spinning = event.state.spinning;
     console.log('spinning = ' + spinning);
     if (spinning != '') {
-      disableButton();
-      startSpinning(spinning);
+      drawParticipants();
+      go(spinning);
     } else {
-      enableButton();
+      console.log('done');
     }
   }
 });
@@ -21,62 +120,11 @@ function onSpin() {
   gapi.hangout.data.setValue('spinning', participants[selected].id);
 }
 
-function disableButton() {
-  $('#spinButton').attr('disabled', 'disabled');
-}
-
-function enableButton() {
-  $('#spinButton').removeAttr('disabled');
-}
-
-var active = [];
-
-function cacheActiveParticipants() {
-  var participants = gapi.hangout.getParticipants();
-  participants.sort(function(a, b) {
-    return a.displayIndex - b.displayIndex;
-  });
-  active = [];
-  for (var i = 0; i < participants.length; i++) {
-    active.push(participants[i].id);
-  }
-}
-
-var counter = 0;
-var limit = 0;
-
-function startSpinning(spinning) {
-  cacheActiveParticipants();
-  var targetIndex = active.indexOf(spinning);
-  // TODO: adjust # cycles to give a limit of around 20
-  limit = targetIndex + active.length * 4;
-  counter = 0;
-  updateSpin();
-}
-
-function updateSpin() {
-  if (counter > 0) {
-    var prev = (counter - 1) % active.length;
-    gapi.hangout.av.setAvatar(active[prev], 'https://upload.wikimedia.org/wikipedia/commons/5/59/Empty.png');
-  }
-
-  var idx = counter % active.length;
-  if (counter < limit) {
-    console.log('Activating ' + active[idx]);
-    gapi.hangout.av.setAvatar(active[idx], 'https://hangout-for-teams.googlecode.com/git/spinning.png');
-    setTimeout(updateSpin, 100*(limit-counter+5)/(limit-counter+1));
-    counter++;
-  } else {
-    gapi.hangout.av.setAvatar(active[idx], 'https://hangout-for-teams.googlecode.com/git/active.png');
-    gapi.hangout.data.setValue('spinning', '');
-  }
-}
-
 function init() {
   // When API is ready...                                                         
   gapi.hangout.onApiReady.add(function(event) {
     if (event.isApiReady) {
-      enableButton();
+      drawParticipants();
     }
   });
 }
