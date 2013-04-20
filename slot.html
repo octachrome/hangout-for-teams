@@ -7,19 +7,23 @@
 var sheight = 200;
 // height + padding + border
 var pheight = 26;
-var entries = ['Alice', 'Bob'];
+var entries = ['Alice', 'Bob', 'Charlie', 'Edith'];
 var a = 0.0001;
 
 var slowafter = 33;
-var max = 40;
 var minv = 0.1;
+
+var activeOffset = 10;
+
+function onMouseDown() {
+	$(this).css('background-position-x', '-242px');
+	$(this).off('mousedown');
+	go();
+}
 
 function setup() {
 	var machine = $('.machine');
-	machine.mousedown(function() {
-		$(this).css('background-position-x', '-242px');
-		go();
-	});
+	machine.mousedown(onMouseDown);
 	machine.mouseup(function() {
 		$(this).delay(200).animate({'background-position-x': 0}, 0);
 	});
@@ -32,13 +36,18 @@ function setup() {
 			container.append(p);
 		}
 	}
+	container.css('top', - pheight * entries.length + activeOffset + 'px');
 }
 
+var max;
 var t;
 var v;
 var lastTime;
 
 function go() {
+	var i = Math.floor(Math.random() * entries.length);
+	console.log('selected ' + entries[i]);
+	max = Math.ceil(40 / entries.length) * entries.length - i + 1;
 	t = 0;
 	v = 0.4;
 	lastTime = null;
@@ -53,7 +62,7 @@ function run() {
 	var dt = time - lastTime;
 	lastTime = time;
 
-	var top = t % (pheight * entries.length) - pheight * entries.length;
+	var top = t % (pheight * entries.length) - pheight * entries.length + activeOffset;
 	$('.container').css('top', top + 'px');
 
 	var remaining = max - Math.floor(t / pheight);
@@ -62,6 +71,8 @@ function run() {
 	if (remaining > 0) {
 		t += delta;
 		setTimeout(run, 10);
+	} else {
+		$('.machine').mousedown(onMouseDown);
 	}
 
 	if (remaining < slowafter) {
