@@ -25,6 +25,9 @@ var minv = 0.1;
 // Pixel offset to make the active row line up with the centre line
 var activeOffset = 10;
 
+// Overlays to show over the video feed when the participant is active or has already spoken
+var activeOverlay, previousOverlay;
+
 function compare(a, b) {
   if (a == b) {
     return 0;
@@ -119,15 +122,27 @@ function run() {
 }
 
 var spinning = null;
+var weAreActive = null;
 
 function onStateChanged(event) {
   if (event.state.spinning == '') {
+    if (spinning == gapi.hangout.getLocalParticipantId()) {
+      // We were selected!
+      previousOverlay.setVisible(false);
+      activeOverlay.setVisible(true);
+      weAreActive = true;
+    }
     spinning = null;
     $('.machine').mousedown(onMouseDown);
     console.log('reset');
   } else if (event.state.spinning) {
     if (spinning) {
       return;
+    }
+    if (weAreActive) {
+      // We have finished speaking
+      activeOverlay.setVisible(false);
+      previousOverlay.setVisible(true);
     }
     $(this).off('mousedown');
     spinning = event.state.spinning;
@@ -154,13 +169,32 @@ function nameOf(participant) {
   }
 }
 
+var init2 = _.after(2, function() {
+  setup();
+  gapi.hangout.data.onStateChanged.add(onStateChanged);
+  gapi.hangout.onParticipantsChanged.add(drawParticipants);
+});
+
 function init() {
   // When API is ready...                                                         
   gapi.hangout.onApiReady.add(function(event) {
     if (event.isApiReady) {
-      setup();
-      gapi.hangout.data.onStateChanged.add(onStateChanged);
-      gapi.hangout.onParticipantsChanged.add(drawParticipants);
+      var activeImage = gapi.hangout.av.effects.createImageResource(
+        'https://hangout-for-teams.googlecode.com/git/active.png');
+      activeImage.onLoad.add(function(event) {
+        if (event.isLoaded) {
+          activeOverlay = activeImage.createOverlay();
+          init2();
+        }
+      });
+      var previousImage = gapi.hangout.av.effects.createImageResource(
+        'https://hangout-for-teams.googlecode.com/git/previous.png');
+      previousImage.onLoad.add(function(event) {
+        if (event.isLoaded) {
+          previousOverlay = previousImage.createOverlay();
+          init2();
+        }
+      });
     }
   });
 }
