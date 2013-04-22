@@ -22,6 +22,9 @@ var slowafter = 33;
 // Speed cannot fall below this value
 var minv = 0.1;
 
+// Pixel offset to make the active row line up with the centre line
+var activeOffset = 10;
+
 function compare(a, b) {
   if (a == b) {
     return 0;
@@ -41,6 +44,23 @@ function nameIdComparator(a, b) {
   }
 }
 
+function onMouseDown() {
+  $(this).css('background-position-x', '-242px');
+  if (spinning == null) {
+    $(this).off('mousedown');
+    onSpin();
+  }
+}
+
+function setup() {
+  var machine = $('.machine');
+  machine.mousedown(onMouseDown);
+  machine.mouseup(function() {
+    $(this).delay(200).animate({'background-position-x': 0}, 0);
+  });
+  drawParticipants();
+}
+
 function drawParticipants() {
   participants = gapi.hangout.getParticipants();
   participants.sort(nameIdComparator);
@@ -51,17 +71,17 @@ function drawParticipants() {
   var reps = 1 + Math.ceil(sheight / (participants.length * pheight));
   for (var i = 0; i < reps; i++) {
     for (var j = 0; j < participants.length; j++) {
-      var person = participants[j].person;
-      var displayName = person != null ? person.displayName : 'Unknown';
-      var p = $('<div class="participant">' + displayName + '</div>');
+      var p = $('<div class="participant">' + nameOf(participants[j]) + '</div>');
       container.append(p);
     }
   }
+  container.css('top', - pheight * participants.length + activeOffset + 'px');
 }
 
 function go(participantId) {
   var participant = gapi.hangout.getParticipantById(participantId);
-  max = 40 + participants.indexOf(participant);
+  var i = participants.indexOf(participant);
+  max = Math.ceil(40 / participants.length) * participants.length - i + 1;
   t = 0;
   v = startingV;
   lastTime = null;
@@ -76,7 +96,7 @@ function run() {
   var dt = time - lastTime;
   lastTime = time;
 
-  var top = t % (pheight * participants.length) - pheight * participants.length;
+  var top = t % (pheight * participants.length) - pheight * participants.length + activeOffset;
   $('.container').css('top', top + 'px');
 
   var remaining = max - Math.floor(t / pheight);
@@ -86,6 +106,7 @@ function run() {
     t += delta;
     setTimeout(run, 10);
   } else {
+    console.log('finished');
     gapi.hangout.data.setValue('spinning', '');
   }
 
@@ -97,37 +118,54 @@ function run() {
   }
 }
 
-var spinning = '';
-gapi.hangout.data.onStateChanged.add(function(event) {
-  if (event.state.spinning == null) {
-    return;
-  }
-  if (spinning != event.state.spinning) {
+var spinning = null;
+
+function onStateChanged(event) {
+  if (event.state.spinning == '') {
+    spinning = null;
+    $('.machine').mousedown(onMouseDown);
+    console.log('reset');
+  } else if (event.state.spinning) {
+    if (spinning) {
+      return;
+    }
+    $(this).off('mousedown');
     spinning = event.state.spinning;
     console.log('spinning = ' + spinning);
-    if (spinning != '') {
-      drawParticipants();
-      go(spinning);
-    } else {
-      console.log('done');
-    }
+    drawParticipants();
+    go(spinning);
   }
-});
+}
 
 function onSpin() {
   var participants = gapi.hangout.getParticipants();
   var selected = Math.floor(Math.random() * participants.length);
+  console.log('selected ' + nameOf(participants[selected]));
   gapi.hangout.data.setValue('spinning', participants[selected].id);
+}
+
+function nameOf(participant) {
+  if (participant.person) {
+    var id = String(participant.person.id);
+    return participant.person.displayName + ' ' + id.substring(id.length - 3);
+  } else {
+    id = participant.id;
+    return 'Unknown ' + id.substring(id.length - 3);
+  }
 }
 
 function init() {
   // When API is ready...                                                         
   gapi.hangout.onApiReady.add(function(event) {
     if (event.isApiReady) {
-      drawParticipants();
+      setup();
+      gapi.hangout.data.onStateChanged.add(onStateChanged);
+      gapi.hangout.onParticipantsChanged.add(drawParticipants);
     }
   });
 }
 
 // Wait for gadget to load.
 gadgets.util.registerOnLoadHandler(init);
+
+console.log('loaded spin.js');
