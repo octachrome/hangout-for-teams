@@ -64,7 +64,10 @@ function setup() {
   drawParticipants();
 }
 
-function drawParticipants() {
+function drawParticipants(state) {
+  if (state == null) {
+    state = gapi.hangout.data.getState();
+  }
   participants = gapi.hangout.getParticipants();
   participants.sort(nameIdComparator);
   
@@ -74,7 +77,11 @@ function drawParticipants() {
   var reps = 1 + Math.ceil(sheight / (participants.length * pheight));
   for (var i = 0; i < reps; i++) {
     for (var j = 0; j < participants.length; j++) {
-      var p = $('<div class="participant">' + nameOf(participants[j]) + '</div>');
+      var cls = 'participant';
+      if (state[participants[j].id] == 'spun') {
+        cls += ' spun';
+      }
+      var p = $('<div class="' + cls + '">' + nameOf(participants[j]) + '</div>');
       container.append(p);
     }
   }
@@ -110,7 +117,11 @@ function run() {
     setTimeout(run, 10);
   } else {
     console.log('finished');
-    gapi.hangout.data.setValue('spinning', '');
+    var delta = {'spinning': ''};
+    if (spinning) {
+      delta[spinning] = 'spun';
+    }
+    gapi.hangout.data.submitDelta(delta);
   }
 
   if (remaining < slowafter) {
@@ -143,20 +154,34 @@ function onStateChanged(event) {
       // We have finished speaking
       activeOverlay.setVisible(false);
       previousOverlay.setVisible(true);
+      weAreActive = false;
     }
     $(this).off('mousedown');
     spinning = event.state.spinning;
     console.log('spinning = ' + spinning);
-    drawParticipants();
+    drawParticipants(event.state);
     go(spinning);
   }
 }
 
 function onSpin() {
   var participants = gapi.hangout.getParticipants();
-  var selected = Math.floor(Math.random() * participants.length);
-  console.log('selected ' + nameOf(participants[selected]));
-  gapi.hangout.data.setValue('spinning', participants[selected].id);
+  var state = gapi.hangout.data.getState();
+  var eligible = [];
+  for (var i = 0; i < participants.length; i++) {
+    var participant = participants[i];
+    if (state[participant.id] != 'spun') {
+      eligible.push(participant);
+    }
+  }
+  if (eligible.length == 0) {
+    console.log('no eligible participants');
+    $('.machine').mousedown(onMouseDown);
+  } else {
+    var selected = Math.floor(Math.random() * eligible.length);
+    console.log('selected ' + nameOf(eligible[selected]));
+    gapi.hangout.data.setValue('spinning', eligible[selected].id);
+  }
 }
 
 function nameOf(participant) {

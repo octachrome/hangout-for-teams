@@ -54,6 +54,9 @@ div.participant {
 	text-align: center;
 	padding: 3px;
 }
+div.spun {
+	color: grey;
+}
 </style>
 </head>
 <body>
