@@ -27,6 +27,7 @@ var activeOffset = 10;
 
 // Overlays to show over the video feed when the participant is active or has already spoken
 var activeOverlay, previousOverlay;
+var startSound, endSound;
 
 function compare(a, b) {
   if (a == b) {
@@ -50,6 +51,7 @@ function nameIdComparator(a, b) {
 function onMouseDown() {
   $(this).css('background-position-x', '-242px');
   if (spinning == null) {
+    startSound.play({loop: false, global: true});
     $(this).off('mousedown');
     onSpin();
   }
@@ -141,6 +143,7 @@ function onStateChanged(event) {
       // We were selected!
       previousOverlay.setVisible(false);
       activeOverlay.setVisible(true);
+      endSound.play({loop: false, global: true});
       weAreActive = true;
     }
     spinning = null;
@@ -194,7 +197,7 @@ function nameOf(participant) {
   }
 }
 
-var init2 = _.after(2, function() {
+var init2 = _.after(4, function() {
   setup();
   gapi.hangout.data.onStateChanged.add(onStateChanged);
   gapi.hangout.onParticipantsChanged.add(drawParticipants);
@@ -217,6 +220,22 @@ function init() {
       previousImage.onLoad.add(function(event) {
         if (event.isLoaded) {
           previousOverlay = previousImage.createOverlay();
+          init2();
+        }
+      });
+      var startAudio = gapi.hangout.av.effects.createAudioResource(
+        'https://rawgithub.com/octachrome/hangout-for-teams/master/ker-ching.wav');
+      startAudio.onLoad.add(function(event) {
+        if (event.isLoaded) {
+          startSound = startAudio.createSound();
+          init2();
+        }
+      });
+      var endAudio = gapi.hangout.av.effects.createAudioResource(
+        'https://rawgithub.com/octachrome/hangout-for-teams/master/bell.wav');
+      endAudio.onLoad.add(function(event) {
+        if (event.isLoaded) {
+          endSound = endAudio.createSound();
           init2();
         }
       });
