@@ -25,8 +25,7 @@ var minv = 0.1;
 // Pixel offset to make the active row line up with the centre line
 var activeOffset = 10;
 
-// Overlays to show over the video feed when the participant is active or has already spoken
-var activeOverlay, previousOverlay;
+// Sounds to play when spin is initiated and when it finishes
 var startSound, endSound;
 
 function compare(a, b) {
@@ -51,7 +50,6 @@ function nameIdComparator(a, b) {
 function onMouseDown() {
   $(this).css('background-position-x', '-242px');
   if (spinning == null) {
-    startSound.play({loop: false, global: true});
     $(this).off('mousedown');
     onSpin();
   }
@@ -134,35 +132,46 @@ function run() {
   }
 }
 
+// If set, the machine is spinning and will end on the participant with this id
 var spinning = null;
-var weAreActive = null;
+// If set, the machine has recently spun and ended on the participant with this id
+var activeSpeaker = null;
 
 function onStateChanged(event) {
   if (event.state.spinning == '') {
-    if (spinning == gapi.hangout.getLocalParticipantId()) {
-      // We were selected!
-      previousOverlay.setVisible(false);
-      activeOverlay.setVisible(true);
-      endSound.play({loop: false, global: true});
-      weAreActive = true;
+    if (spinning) {
+      // A spin has just ended.
+      endSound.play({loop: false, global: false});
+
+      // The participant with id stored in spinning was just selected - show them as the active speaker
+      gapi.hangout.av.setAvatar(spinning, 'https://hangout-for-teams.googlecode.com/git/active.png');
+      activeSpeaker = spinning;
     }
+    // Re-enable the spin button
     spinning = null;
     $('.machine').mousedown(onMouseDown);
     console.log('reset');
   } else if (event.state.spinning) {
     if (spinning) {
+      // Ignore new spin events if there is already one active - this avoids the problem where several
+      // people click to spin at the same time.
       return;
     }
-    if (weAreActive) {
-      // We have finished speaking
-      activeOverlay.setVisible(false);
-      previousOverlay.setVisible(true);
-      weAreActive = false;
+    // A spin has just begun.
+    startSound.play({loop: false, global: false});
+
+    if (activeSpeaker) {
+      // The participant with id stored in activeSpeaker has now finished speaking - show them as a 'previous' speaker
+      gapi.hangout.av.setAvatar(activeSpeaker, 'https://hangout-for-teams.googlecode.com/git/previous.png');
+      activeSpeaker = null;
     }
+
+    // Disable the spin button
     $(this).off('mousedown');
     spinning = event.state.spinning;
     console.log('spinning = ' + spinning);
     drawParticipants(event.state);
+    // Start the animation
     go(spinning);
   }
 }
@@ -197,7 +206,7 @@ function nameOf(participant) {
   }
 }
 
-var init2 = _.after(4, function() {
+var init2 = _.after(2, function() {
   setup();
   gapi.hangout.data.onStateChanged.add(onStateChanged);
   gapi.hangout.onParticipantsChanged.add(drawParticipants);
@@ -207,22 +216,6 @@ function init() {
   // When API is ready...                                                         
   gapi.hangout.onApiReady.add(function(event) {
     if (event.isApiReady) {
-      var activeImage = gapi.hangout.av.effects.createImageResource(
-        'https://hangout-for-teams.googlecode.com/git/active.png');
-      activeImage.onLoad.add(function(event) {
-        if (event.isLoaded) {
-          activeOverlay = activeImage.createOverlay();
-          init2();
-        }
-      });
-      var previousImage = gapi.hangout.av.effects.createImageResource(
-        'https://hangout-for-teams.googlecode.com/git/previous.png');
-      previousImage.onLoad.add(function(event) {
-        if (event.isLoaded) {
-          previousOverlay = previousImage.createOverlay();
-          init2();
-        }
-      });
       var startAudio = gapi.hangout.av.effects.createAudioResource(
         'https://rawgithub.com/octachrome/hangout-for-teams/master/ker-ching.wav');
       startAudio.onLoad.add(function(event) {
