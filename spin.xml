@@ -31,11 +31,17 @@
 p, div {
 	font-family: Verdana, Geneva, sans-serif;
 }
+h3.hft {
+	margin-top: 10px;
+	text-align: center;
+}
 div.machine {
 	width: 242px;
 	height: 345px;
 	background-image: url(https://hangout-for-teams.googlecode.com/git/slot2.png);
 	position: relative;
+	cursor: pointer;
+	margin: 0 auto;
 }
 div.slot {
 	top: 109px;
@@ -61,8 +67,8 @@ div.spun {
 </style>
 </head>
 <body>
-<h3>Spin the wheel</h3>
-<div class="machine">
+<h3 class="hft">Click to spin the wheel</h3>
+<div class="machine" title="Click me">
 <div class="slot">
 <div class="container"></div>
 </div>
