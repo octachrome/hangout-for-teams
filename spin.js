@@ -150,7 +150,7 @@ function onStateChanged(event) {
       endSound.play({loop: false, global: false});
 
       // The participant with id stored in spinning was just selected - show them as the active speaker
-      gapi.hangout.av.setAvatar(spinning, 'https://rawgithub.com/octachrome/hangout-for-teams/master/active.png');
+      gapi.hangout.av.setAvatar(spinning, 'https://rawgithub.com/octachrome/hangout-for-teams/live/active.png');
       activeSpeaker = spinning;
     }
     // Re-enable the spin button
@@ -168,7 +168,7 @@ function onStateChanged(event) {
 
     if (activeSpeaker) {
       // The participant with id stored in activeSpeaker has now finished speaking - show them as a 'previous' speaker
-      gapi.hangout.av.setAvatar(activeSpeaker, 'https://rawgithub.com/octachrome/hangout-for-teams/master/previous.png');
+      gapi.hangout.av.setAvatar(activeSpeaker, 'https://rawgithub.com/octachrome/hangout-for-teams/live/previous.png');
       activeSpeaker = null;
     }
 
@@ -223,7 +223,7 @@ function init() {
   gapi.hangout.onApiReady.add(function(event) {
     if (event.isApiReady) {
       var startAudio = gapi.hangout.av.effects.createAudioResource(
-        'https://rawgithub.com/octachrome/hangout-for-teams/master/ker-ching.wav');
+        'https://rawgithub.com/octachrome/hangout-for-teams/live/ker-ching.wav');
       startAudio.onLoad.add(function(event) {
         if (event.isLoaded) {
           startSound = startAudio.createSound();
@@ -231,7 +231,7 @@ function init() {
         }
       });
       var endAudio = gapi.hangout.av.effects.createAudioResource(
-        'https://rawgithub.com/octachrome/hangout-for-teams/master/bell.wav');
+        'https://rawgithub.com/octachrome/hangout-for-teams/live/bell.wav');
       endAudio.onLoad.add(function(event) {
         if (event.isLoaded) {
           endSound = endAudio.createSound();
