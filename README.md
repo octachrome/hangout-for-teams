@@ -5,6 +5,8 @@ This project aims to provide a suite of tools which make team collaboration usin
 it contains just one tool, which selects a random participant in the hangout who has not yet been selected. This is intended
 for use in daily meetings where each participant takes a turn to speak.
 
+[Try it out!](https://plus.google.com/hangouts/_?gid=954856844161)
+
 Terms of service
 ----------------
 Google insists that I provide terms of service, so here they are:
