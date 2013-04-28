@@ -1,3 +1,5 @@
+var debug = false;
+
 var participants;
 // Total number of pixels scrolled
 var t;
@@ -27,6 +29,10 @@ var activeOffset = 10;
 
 // Sounds to play when spin is initiated and when it finishes
 var startSound, endSound;
+
+function dlog() {
+  debug && console.log.apply(console.log, arguments);
+}
 
 function compare(a, b) {
   if (a == b) {
@@ -116,7 +122,7 @@ function run() {
     t += delta;
     setTimeout(run, 10);
   } else {
-    console.log('finished');
+    dlog('finished');
     var delta = {'spinning': ''};
     if (spinning) {
       delta[spinning] = 'spun';
@@ -144,13 +150,13 @@ function onStateChanged(event) {
       endSound.play({loop: false, global: false});
 
       // The participant with id stored in spinning was just selected - show them as the active speaker
-      gapi.hangout.av.setAvatar(spinning, 'https://hangout-for-teams.googlecode.com/git/active.png');
+      gapi.hangout.av.setAvatar(spinning, 'https://rawgithub.com/octachrome/hangout-for-teams/master/active.png');
       activeSpeaker = spinning;
     }
     // Re-enable the spin button
     spinning = null;
     $('.machine').mousedown(onMouseDown);
-    console.log('reset');
+    dlog('reset');
   } else if (event.state.spinning) {
     if (spinning) {
       // Ignore new spin events if there is already one active - this avoids the problem where several
@@ -162,14 +168,14 @@ function onStateChanged(event) {
 
     if (activeSpeaker) {
       // The participant with id stored in activeSpeaker has now finished speaking - show them as a 'previous' speaker
-      gapi.hangout.av.setAvatar(activeSpeaker, 'https://hangout-for-teams.googlecode.com/git/previous.png');
+      gapi.hangout.av.setAvatar(activeSpeaker, 'https://rawgithub.com/octachrome/hangout-for-teams/master/previous.png');
       activeSpeaker = null;
     }
 
     // Disable the spin button
     $(this).off('mousedown');
     spinning = event.state.spinning;
-    console.log('spinning = ' + spinning);
+    dlog('spinning = ' + spinning);
     drawParticipants(event.state);
     // Start the animation
     go(spinning);
@@ -187,11 +193,11 @@ function onSpin() {
     }
   }
   if (eligible.length == 0) {
-    console.log('no eligible participants');
+    dlog('no eligible participants');
     $('.machine').mousedown(onMouseDown);
   } else {
     var selected = Math.floor(Math.random() * eligible.length);
-    console.log('selected ' + nameOf(eligible[selected]));
+    dlog('selected ' + nameOf(eligible[selected]));
     gapi.hangout.data.setValue('spinning', eligible[selected].id);
   }
 }
@@ -199,10 +205,10 @@ function onSpin() {
 function nameOf(participant) {
   if (participant.person) {
     var id = String(participant.person.id);
-    return participant.person.displayName + ' ' + id.substring(id.length - 3);
+    return participant.person.displayName + (debug ? ' ' + id.substring(id.length - 3) : '');
   } else {
     id = participant.id;
-    return 'Unknown ' + id.substring(id.length - 3);
+    return 'Unknown ' + (debug ? id.substring(id.length - 3) : '');
   }
 }
 
@@ -239,4 +245,4 @@ function init() {
 // Wait for gadget to load.
 gadgets.util.registerOnLoadHandler(init);
 
-console.log('loaded spin.js');
+dlog('loaded spin.js');
